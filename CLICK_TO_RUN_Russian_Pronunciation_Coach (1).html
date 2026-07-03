@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Russian Pronunciation Coach</title>
+  
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#172033;background:#f6f7fb}body{margin:0}header{background:#26364f;color:white;padding:18px 20px}main{max-width:980px;margin:auto;padding:18px}.card{background:white;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 3px 14px #0001}.target{font-size:34px;font-weight:700;letter-spacing:.02em}.small{color:#5d6778}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}button,select,input{font:inherit;border-radius:12px;border:1px solid #cfd6e3;padding:10px 14px}button{background:#1e65ff;color:white;border:0;cursor:pointer}button.secondary{background:#eef2f8;color:#172033}button.danger{background:#b3261e}button:disabled{opacity:.45}.pill{display:inline-block;background:#eef2f8;border-radius:999px;padding:6px 10px;margin:4px}.ok{color:#147a39}.bad{color:#b3261e}.warn{color:#a15c00}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.word{border:1px solid #e1e6ef;border-radius:14px;padding:12px;background:#fbfcff;cursor:pointer}.word.active{outline:3px solid #9fbaff}.score{font-size:46px;font-weight:800}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.transcript{font-size:24px;min-height:36px}.meter{height:12px;background:#e9edf5;border-radius:99px;overflow:hidden}.bar{height:100%;background:#1e65ff;width:0%}.note{line-height:1.45}textarea{width:100%;min-height:90px;border-radius:12px;border:1px solid #cfd6e3;padding:10px;font:inherit}</style>
+</head>
+<body>
+<header><h1>Russian Pronunciation Coach</h1><div>For Armand — based on Sergey’s starter material</div></header>
+<main>
+  <section class="card">
+    <h2>1. Choose a lesson</h2>
+    <div class="row">
+      <select id="lesson"></select>
+      <button class="secondary" id="speakBtn">🔊 Native model</button>
+      <button id="listenBtn">🎤 Record me</button>
+      <button class="secondary" id="nextBtn">Next</button>
+    </div>
+    <p class="small">Click this file to open it in Chrome. Allow microphone access. On Pixel, if mic is blocked from a downloaded file, use the hosted/PWA version.</p>
+  </section>
+
+  <section class="card">
+    <h2>Current target</h2>
+    <div class="target" id="target">...</div>
+    <div class="small" id="hint"></div>
+    <div class="meter"><div class="bar" id="bar"></div></div>
+    <div class="row"><div class="score" id="score">—</div><div id="verdict" class="note"></div></div>
+    <h3>What Chrome heard</h3>
+    <div class="transcript mono" id="heard">—</div>
+    <h3>Feedback</h3>
+    <div id="feedback" class="note">Press “Native model”, then “Record me”.</div>
+  </section>
+
+  <section class="card">
+    <h2>Practice list</h2>
+    <div class="grid" id="wordGrid"></div>
+  </section>
+
+
+  <section class="card">
+    <h2>Vowel reduction coach: О/А</h2>
+    <p class="note">Russian spelling can trick your eyes. Unstressed <b>о</b> and <b>а</b> are reduced. Right before the stressed syllable, at the beginning, and often at the end of a word they sound like a weak <b>а</b>. Farther from stress, they become an even quicker indistinct <b>uh</b>. The app now includes special drills for this: <b>около, город, города, погода, хорошо, Новгород, Новослободская</b>.</p>
+    <p class="small">Rule of thumb: trust your ears more than the spelling. Do not pronounce every written О as a full “o”.</p>
+  </section>
+
+  <section class="card">
+    <h2>Custom practice</h2>
+    <p class="small">Paste Russian words or a short sentence from Sergey. Put one item per line.</p>
+    <textarea id="customText">Аэропорт
+паспорт
+такси
+банк
+кафе
+кофе
+сэндвич
+компьютер
+телефон
+Я понимаю русские слова!
+Я знаю русский язык!</textarea>
+    <div class="row"><button class="secondary" id="loadCustom">Load custom list</button></div>
+  </section>
+</main>
+<script>
+const lessons = {
+  "Sergey text: cognates": [
+    ["Аэропорт","stress: порт"],["паспорт","stress: па"],["такси","stress: и"],["банк","final к is strong"],["кафе","stress: е"],["кофе","stress: ко"],["сэндвич","дж/ч cluster"],["компьютер","soft м + ю"],["телефон","stress: фон"],["Я понимаю русские слова!","я = ya; понимаю = pa-ni-MA-yu"],["Я знаю русский язык!","знаю = ZNA-yu"]
+  ],
+  "Vowel reduction О/А — Sergey video": [
+    ["было","final unstressed о: weak а, not full о"],["много","final unstressed о: weak а"],["Ольга","initial О is reduced: weak а"],["Тула","final а is weak, not too strong"],["она","initial о reduced; stress on а"],["обещал","initial о reduced; stress on а"],["албанка","initial а weak; stress бан"],["потом","о before stress sounds like weak а; stress том"],["погода","о before stress weak а; stress го"],["дала","а before stress weak а; stress ла"],["гараж","а before stress weak а; stress раж"],["хорошо","first о very reduced uh; second о weak а; stress шо"],["дорогой","first о very reduced uh; second о weak а; stress гой"],["Новослободская","far-from-stress о/а become very quick uh; stress бод"],["заняла","first а very reduced; second а weak; stress ла"],["сорок","post-stress о inside word: quick uh"],["город","post-stress о inside word: quick uh; do not say ГО-род with full о"],["холод","post-stress о inside word: quick uh"],["Новгород","post-stress о reduced; final д devoices"],["около","listen: first о weak, middle о quick uh, final о weak"],["вода","о before stress = weak а; stress да"],["водопад","unstressed о/а sound similar; spelling ≠ pronunciation"],["города","contrast with город; stress final а"],["Таганрог","watch unstressed а/o and final г devoices"]
+  ],
+  "A1 useful words": [
+    ["привет","stress вет"],["спасибо","stress си; final о weak"],["пожалуйста","unstressed о/а reduced; stress жа"],["да","short а"],["нет","е softens н"],["хорошо","vowel reduction pattern: хъ-ра-ШО"],["плохо","stress пло; final о weak"],["можно","ж hard; final о weak"],["нельзя","stress зя"],["сегодня","его sounds like ево in standard speech"],["завтра","stress за"],["вчера","stress ра"],["человек","stress век"],["женщина","ж hard; щ long soft"],["мужчина","ж hard; ч soft"],["девушка","stress де; ш hard"],["мальчик","soft ль"],["друг","final г devoices"],["семья","soft м before я"],["работа","о before stress weak а; stress бо"],["магазин","stress зин"],["улица","stress у"],["машина","stress ши"],["вокзал","о before stress weak а"],["метро","stress ро"],["ресторан","stress ран"],["квартира","stress ти"],["молоко","unstressed о reduced; stress ко"],["вода","о before stress weak а"],["хлеб","final б may devoice"],["сыр","ы + р"],["чай","ч soft"],["язык","stress зык; ы"],["русский","double с; ы"],["Канада","stress на; final а weak"],["Франция","stress Фран"],["Иран","stress ран"]
+  ],
+  "Short words 1": [["дом","o = stressed o"],["кот","final т not English aspirated"],["бык","ы: tongue pulled back"],["май","ай = ai"],["кит","и after к"],["рак","rolled/tapped р"],["дед","е softens д"],["ухо","stress final о"],["жук","ж like Persian/English zh"],["зуб","final б may devoice toward п"],["бой","ой = oy"],["бак","a open"],["сок","o stressed"],["ёрш","ё = yo, final ш hard"],["оса","stress final а"],["сом","o stressed"],["сон","o stressed"],["шаг","ш hard"],["рог","final г devoices toward к"]],
+  "Short words 2": [["лом","л is hard"],["лес","е softens л"],["вой","ой = oy"],["век","е softens в"],["эхо","э open e"],["юла","ю = yu"],["яма","я = ya"],["чай","ч is soft"],["вид","final д may devoice"],["нос","o stressed"],["дуб","final б may devoice"],["ель","е + soft л"],["сыр","ы, then rolled р"],["имя","м soft before я"],["йог","й = y"],["мёд","ё = yo"],["мех","х like Persian خ"],["бор","rolled р"],["бук","u = у"]],
+  "Short words 3": [["год","final д may devoice"],["два","дв cluster"],["уха","stress final а"],["дно","дн cluster"],["лук","hard л"],["йод","йо"],["лев","е softens л"],["бок","o stressed"],["мак","a"],["еда","stress final а"],["нож","ж hard; final ж may devoice"],["сад","final д may devoice"],["зал","hard л"],["рот","rolled/tapped р"],["сын","ы"],["мир","и, then р"],["уют","у-ют"],["фея","фе-я"],["шар","ш hard, р" ]]
+};
+let currentLesson = Object.keys(lessons)[0], idx = 0, items = lessons[currentLesson];
+const el = id=>document.getElementById(id);
+function norm(s){return (s||"").toLowerCase().replace(/[ё]/g,"е").replace(/[^а-яa-z0-9 ]/g," ").replace(/\s+/g," ").trim()}
+function lev(a,b){const m=a.length,n=b.length,dp=Array.from({length:m+1},()=>Array(n+1).fill(0));for(let i=0;i<=m;i++)dp[i][0]=i;for(let j=0;j<=n;j++)dp[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+(a[i-1]==b[j-1]?0:1));return dp[m][n]}
+function score(target, heard){let a=norm(target), b=norm(heard); if(!b)return 0; return Math.max(0, Math.round(100*(1-lev(a,b)/Math.max(a.length,b.length,1))))}
+function hasOAReduction(target){return /[оа]/i.test(target) && target.length>3}
+function makeFeedback(target, heard, sc){let t=norm(target), h=norm(heard); let notes=[]; if(sc>88)notes.push("✅ Very good. Repeat 3 times, keeping the same rhythm."); else if(sc>65)notes.push("Good start. One or two sounds/stress points need work."); else notes.push("Slow it down: say the word by syllables first, then normal speed.");
+ if(/[р]/i.test(target))notes.push("Р: use one quick tongue tap/roll behind the upper teeth. Do not use English/French throat R.");
+ if(/[ы]/i.test(target))notes.push("Ы: start from French/English ‘i’, pull the tongue back, keep lips relaxed. Avoid saying И.");
+ if(/[х]/i.test(target))notes.push("Х: like Persian خ, with steady friction; not English ‘h’.");
+ if(/[шж]/i.test(target))notes.push("Ш/Ж are hard: tongue slightly back, lips relaxed/rounded; do not make them too soft like щ/ч.");
+ if(/[еёюя]/i.test(target))notes.push("Е/Ё/Ю/Я often soften the consonant before them. Compare hard vs soft carefully.");
+ if(hasOAReduction(target))notes.push("О/А vowel reduction: do not read the spelling literally. Unstressed О usually sounds closer to А or a very quick ‘uh’. Right before stress it is clearer; farther from stress it is more reduced.");
+ if(/хорошо/i.test(target))notes.push("For хорошо: avoid English-style ‘ha-RO-sho’. Say the first syllable very weak, the second like weak а, and strongly stress ШО.");
+ if(/город/i.test(target))notes.push("For город/Новгород: the second О is reduced and quick; final Д may sound closer to Т.");
+ if(/около/i.test(target))notes.push("For около: listen for three different strengths: first О weak, middle О very quick, final О weak again.");
+ if(t && h && t!==h)notes.push(`Target: ${target}. Heard: ${heard}. Try exaggerating the stressed syllable and consonant endings.`);
+ return notes.map(x=>`<p>${x}</p>`).join("")}
+function render(){items=lessons[currentLesson]; let it=items[idx]; el('target').textContent=it[0]; el('hint').textContent=it[1]||""; el('score').textContent='—'; el('heard').textContent='—'; el('bar').style.width='0%'; el('verdict').textContent=''; el('feedback').innerHTML='Press “Native model”, then “Record me”.'; el('wordGrid').innerHTML=items.map((w,i)=>`<div class="word ${i===idx?'active':''}" onclick="idx=${i};render()"><b>${w[0]}</b><br><span class="small">${w[1]||''}</span></div>`).join('')}
+function speak(text){const u=new SpeechSynthesisUtterance(text);u.lang='ru-RU';u.rate=.75; speechSynthesis.cancel(); speechSynthesis.speak(u)}
+function listen(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR){alert('Speech recognition is not available in this browser. Use Chrome.');return} const r=new SR(); r.lang='ru-RU'; r.interimResults=false; r.maxAlternatives=3; el('listenBtn').disabled=true; el('heard').textContent='Listening…'; r.onresult=e=>{let heard=e.results[0][0].transcript; let sc=score(items[idx][0],heard); el('heard').textContent=heard; el('score').textContent=sc; el('bar').style.width=sc+'%'; el('verdict').innerHTML=sc>88?'<span class="ok">Excellent</span>':sc>65?'<span class="warn">Close</span>':'<span class="bad">Needs work</span>'; el('feedback').innerHTML=makeFeedback(items[idx][0],heard,sc); save(items[idx][0],heard,sc)}; r.onerror=e=>{el('heard').textContent='Error: '+e.error}; r.onend=()=>el('listenBtn').disabled=false; r.start()}
+function save(t,h,s){let log=JSON.parse(localStorage.russianCoachLog||'[]'); log.unshift({date:new Date().toISOString(),target:t,heard:h,score:s}); localStorage.russianCoachLog=JSON.stringify(log.slice(0,300))}
+el('speakBtn').onclick=()=>speak(items[idx][0]); el('listenBtn').onclick=listen; el('nextBtn').onclick=()=>{idx=(idx+1)%items.length;render()}; el('lesson').innerHTML=Object.keys(lessons).map(k=>`<option>${k}</option>`).join(''); el('lesson').onchange=e=>{currentLesson=e.target.value;idx=0;render()}; el('loadCustom').onclick=()=>{lessons['Custom']=el('customText').value.split('\n').map(x=>x.trim()).filter(Boolean).map(x=>[x,'custom']); currentLesson='Custom'; el('lesson').innerHTML=Object.keys(lessons).map(k=>`<option ${k==='Custom'?'selected':''}>${k}</option>`).join(''); idx=0; render()};
+render();
+</script>
+</body>
+</html>
